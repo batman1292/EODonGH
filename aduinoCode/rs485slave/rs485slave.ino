@@ -9,10 +9,11 @@
 // GND      <-->  GND
 #define LED 8
 #define BUF_SIZE 32
+//#define DIR 4
 
-byte ID = 3;          //change for other pro micro
+byte ID = 1;          //change for other pro micro
 byte buf[ BUF_SIZE ];
-const byte DIR = 10;
+const byte DIR = 4;
 
 void setup() {
   // put your setup code here, to run once:
@@ -35,7 +36,7 @@ void loop() {
 }
 
 void check_data(byte len) {
-  if (buf[0] - '0' == ID && buf[len - 1] == ':') {
+  if (buf[0] - '0' == ID && buf[len - 1] == '\n') {
     // fix byte for data
     if (buf[1] == 'L') {
       buf[2]-'0' == 0 ? digitalWrite(LED, LOW) : digitalWrite(LED, HIGH);

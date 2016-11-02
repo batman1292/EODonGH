@@ -17,13 +17,13 @@
 #define LED 8
 
 //rs 485 variable
-#define EN 4
+const byte EN = 4;
 #define BUF_SIZE 32
 
 //smile EVO24V50 variable
 #define INA 6
 #define INB 5
-#define PWN 9
+#define PWM 9
 
 //Encoder Pin
 #define QEA 3
@@ -32,16 +32,24 @@
 
 byte ID = 1;          //change for other pro micro
 byte buf[ BUF_SIZE ];
-//const byte DIR = 4;
+String cmd = "";
+long countTime = millis();
 
 void setup() {
   // put your setup code here, to run once:
-  pinMode(EN, OUTPUT);
   pinMode(LED, OUTPUT);
-  digitalWrite(EN, LOW);
   digitalWrite(LED, LOW);
+  // init serial1 for rs 485
+  pinMode(EN, OUTPUT);
+  digitalWrite(EN, LOW);
   Serial1.begin(38400);
   Serial1.setTimeout(10);
+//  init evo24v50 pin
+  pinMode(INA, OUTPUT);
+  pinMode(INB, OUTPUT);
+  pinMode(PWM, OUTPUT);
+//  debug serial
+  Serial.begin(115200);
   delay(1000);
 }
 
@@ -51,20 +59,28 @@ void loop() {
   len = Serial1.readBytes( (char *)buf, BUF_SIZE );
   if ( len > 0 ) {
     check_data(len);
+    Serial.write(buf, len);
+  }
+  if(millis()-countTime == 10){
+    countTime = millis();
   }
 }
 
 void check_data(byte len) {
-  if (buf[0] - '0' == ID && buf[len - 1] == ':') {
+  if (buf[0] - '0' == ID && buf[len - 1] == '\n') {
     // fix byte for data
+//    cmd += buf[3]+buf[4];
+    
     if (buf[1] == 'L') {
-      buf[2]-'0' == 0 ? digitalWrite(LED, LOW) : digitalWrite(LED, HIGH);
+      buf[2] - '0' == 0 ? digitalWrite(LED, LOW) : digitalWrite(LED, HIGH);
       digitalWrite(EN, HIGH);
       Serial1.print("ok");
+//      Serial1.print(cmd);
       Serial1.write(buf, len);
       Serial1.flush();
       delayMicroseconds(200);
       digitalWrite(EN, LOW);
     }
+//    cmd = "";
   }
 }
