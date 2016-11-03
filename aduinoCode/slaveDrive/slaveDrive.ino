@@ -25,7 +25,7 @@ const byte EN = 4;
 #define INB 5
 #define PWM 9
 
-byte ID = 1; // change for arduino
+byte ID = 2; // change for arduino
 byte buf[ BUF_SIZE ];
 String cmd = "";
 
@@ -35,6 +35,8 @@ bool is_change_dir = false;
 byte state_dir = 0;
 long countTime = millis();
 long cmdTime = millis();
+
+int isConnect = 0;
 
 void setup() {
   // put your setup code here, to run once:
@@ -62,60 +64,63 @@ void loop() {
   if ( len > 0 ) {
     check_data(len);
   }
-  if(millis() - countTime > 10){
-    countTime = millis();
-//    Serial.println("drive");
-    if(moSpeedNew == 0){
-      if(moSpeedNow > 0){
-        moSpeedNow -= 5;
-      }else{
-        digitalWrite(INA, LOW);
-        digitalWrite(INB, LOW);
-        is_change_dir = false;
-      }
-    }
-    else if(moSpeedNew > 0){
-      if(!is_change_dir){
-        if(moSpeedNow > 0){
+  if (isConnect) {
+    if (millis() - countTime > 10) {
+      countTime = millis();
+      //    Serial.println("drive");
+      if (moSpeedNew == 0) {
+        if (moSpeedNow > 0) {
           moSpeedNow -= 5;
-        }else{
+        } else {
           digitalWrite(INA, LOW);
-          digitalWrite(INB, HIGH);
-          is_change_dir = true;
-        }
-      }else{
-        if(moSpeedNow < moSpeedNew){
-          moSpeedNow += 5;
-        }else{
-          moSpeedNow -= 5;
-        }
-      }
-    }
-    else if(moSpeedNew < 0){
-      if(!is_change_dir){
-        if(moSpeedNow > 0){
-          moSpeedNow -= 5;
-        }else{
-          digitalWrite(INA, HIGH);
           digitalWrite(INB, LOW);
-          is_change_dir = true;
-        }
-      }else{
-        if(moSpeedNow < -moSpeedNew){
-          moSpeedNow += 5;
-        }else{
-          moSpeedNow -= 5;
+          is_change_dir = false;
         }
       }
+      else if (moSpeedNew > 0) {
+        if (!is_change_dir) {
+          if (moSpeedNow > 0) {
+            moSpeedNow -= 5;
+          } else {
+            digitalWrite(INA, LOW);
+            digitalWrite(INB, HIGH);
+            is_change_dir = true;
+          }
+        } else {
+          if (moSpeedNow < moSpeedNew) {
+            moSpeedNow += 5;
+          } else {
+            moSpeedNow -= 5;
+          }
+        }
+      }
+      else if (moSpeedNew < 0) {
+        if (!is_change_dir) {
+          if (moSpeedNow > 0) {
+            moSpeedNow -= 5;
+          } else {
+            digitalWrite(INA, HIGH);
+            digitalWrite(INB, LOW);
+            is_change_dir = true;
+          }
+        } else {
+          if (moSpeedNow < -moSpeedNew) {
+            moSpeedNow += 5;
+          } else {
+            moSpeedNow -= 5;
+          }
+        }
+      }
+      analogWrite(PWM, map(moSpeedNow, 0, 100, 0, 255));
     }
-    analogWrite(PWM, map(moSpeedNow, 0, 100, 0, 255));
-  }
-  if(millis() - cmdTime > 2000){
-    moSpeedNew = 0; 
+    if (millis() - cmdTime > 2000) {
+      moSpeedNew = 0;
+    }
   }
 }
 
 void check_data(byte len) {
+  Serial.write(buf, len);
   if (buf[1] - '0' == ID && buf[len - 1] == '\n') {
     cmd += char(buf[3]);
     cmd += char(buf[4]);
@@ -140,14 +145,14 @@ void check_data(byte len) {
     } else if (cmd == "MO") {
       cmdTime = millis();
       String value = "";
-      for(int i = 6; i < len-1; i++){
+      for (int i = 6; i < len - 1; i++) {
         value += char(buf[i]);
       }
       moSpeedNew = value.toInt();
-      if(moSpeedNew > 75){
+      if (moSpeedNew > 75) {
         moSpeedNew = 75;
       }
-      if(moSpeedNew < -75){
+      if (moSpeedNew < -75) {
         moSpeedNew = -75;
       }
       changeDir(moSpeedNew);
@@ -155,7 +160,25 @@ void check_data(byte len) {
       Serial1.print("0");
       Serial1.print(ID);
       Serial1.println(",OK");
-//      Serial1.println(moSpeedNow);
+      //      Serial1.println(moSpeedNow);
+      Serial1.flush();
+      delayMicroseconds(200);
+      digitalWrite(EN, LOW);
+    } else if (cmd == "CT") {
+      isConnect = 1;
+      digitalWrite(EN, HIGH);
+      Serial1.print("0");
+      Serial1.print(ID);
+      Serial1.println(",OK");
+      Serial1.flush();
+      delayMicroseconds(200);
+      digitalWrite(EN, LOW);
+    } else if (cmd == "DT") {
+      isConnect = 0;
+      digitalWrite(EN, HIGH);
+      Serial1.print("0");
+      Serial1.print(ID);
+      Serial1.println(",OK");
       Serial1.flush();
       delayMicroseconds(200);
       digitalWrite(EN, LOW);
@@ -164,13 +187,13 @@ void check_data(byte len) {
   }
 }
 
-void changeDir(int moSpeed){
-  if(moSpeed>0){
+void changeDir(int moSpeed) {
+  if (moSpeed > 0) {
     if (state_dir != 1) {
       is_change_dir = false;
       state_dir = 1;
     }
-  }else if(moSpeed < 0){
+  } else if (moSpeed < 0) {
     if (state_dir != 2) {
       is_change_dir = false;
       state_dir = 2;
