@@ -39,7 +39,7 @@ void draw() {
         line(lastxPos, lastheight[id-1], xPos, height - inByte); 
         lastxPos= xPos;
         lastheight[id-1] = int(height-inByte);
-        if (id == 3) {
+        if (id == 1) {
           // at the edge of the window, go back to the beginning:
           if (xPos >= width) {
             xPos = 0;
