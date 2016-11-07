@@ -31,7 +31,7 @@ const byte EN = 4;
 #define INDEX 7
 
 const int AN = A0;
-byte ID = 1;          //change for other pro micro
+byte ID = 2;          //change for other pro micro
 byte buf[ BUF_SIZE ];
 String cmd = "";
 long countTime = millis();

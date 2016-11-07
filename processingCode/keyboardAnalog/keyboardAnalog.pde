@@ -17,7 +17,7 @@ int [] lastheight = {
 };
 
 void setup() {
-  myPort = new Serial(this, Serial.list()[4], 38400);
+  myPort = new Serial(this, Serial.list()[4], 115200);
   myPort.clear();
   size(600, 400);
 }
