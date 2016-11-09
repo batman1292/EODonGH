@@ -30,13 +30,16 @@ void loop() {
   digitalWrite(EN, HIGH);
   delayMicroseconds(50);
   Serial1.write(0x55);
-  Serial1.write(0x56);
-  Serial1.write(0x57);
+//  Serial1.write(0x56);
+//  Serial1.write(0x57);
 //  Serial1.write(0x58);
 //  Serial1.write(0x59);
-//  Serial1.write(0x60);
+//  Serial1.write(0x5A);
+//  Serial1.write(0x5B);
+//  Serial1.write(0x5C);
+//  Serial1.write(0x5D);
   Serial1.flush();
-  delayMicroseconds(200);
+  delayMicroseconds(100);
   digitalWrite(EN, LOW);
   delay(100);
 }

@@ -17,7 +17,7 @@
 #define LED 8
 
 //rs 485 variable
-const byte EN = 4;
+#define EN 4
 #define BUF_SIZE 32
 
 //smile EVO24V50 variable
@@ -31,12 +31,19 @@ const byte EN = 4;
 #define INDEX 7
 
 const int AN = A0;
-byte ID = 1;          //change for other pro micro
+byte ID = 3;          //change for other pro micro
 byte buf[ BUF_SIZE ];
 String cmd = "";
-long countTime = millis();
+//long countTime = millis();
 int analogValue = 0;
 byte isConnect = 0;
+
+int moSpeedNew = 0;
+int moSpeedNow = 0;
+bool is_change_dir = false;
+byte state_dir = 0;
+long countTime = millis();
+long cmdTime = millis();
 
 void setup() {
   // put your setup code here, to run once:
@@ -64,9 +71,9 @@ void loop() {
     check_data(len);
     Serial.write(buf, len);
   }
-  if(millis()-countTime == 10){
-    countTime = millis();
-  }
+//  if(millis()-countTime == 10){
+//    countTime = millis();
+//  }
 }
 
 void check_data(byte len) {

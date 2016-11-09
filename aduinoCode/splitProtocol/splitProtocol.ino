@@ -1,11 +1,12 @@
-
+#include <string.h>
 //rs 485 variable
 const byte EN = 4;
 #define BUF_SIZE 32
 
-byte ID = 13;          //change for other pro micro
+byte ID = 2;          //change for other pro micro
 byte buf[ BUF_SIZE ];
 String cmd = "";
+char *temp, *cmd, *value;
 
 void setup() {
   // put your setup code here, to run once:
@@ -27,32 +28,10 @@ void loop() {
 }
 
 void check_data(byte len) {
-  cmd += char(buf[0]);
-  cmd += char(buf[1]);
-  if (cmd.toInt() == ID && buf[len - 1] == '\n') {
-    cmd = "";
-    cmd += char(buf[3]);
-    cmd += char(buf[4]);
-    if(cmd == "CT"){
-      isConnect = 1;
-      digitalWrite(EN, HIGH);
-      Serial1.print("0");
-      Serial1.print(ID);
-      Serial1.println(",OK");
-      Serial1.flush();
-      delayMicroseconds(200);
-      digitalWrite(EN, LOW);
-    }else if(cmd == "DT"){
-      isConnect = 0;
-      digitalWrite(EN, HIGH);
-      Serial1.print("0");
-      Serial1.print(ID);
-      Serial1.println(",OK");
-      Serial1.flush();
-      delayMicroseconds(200);
-      digitalWrite(EN, LOW);
-    }
+  i = (char *)buf;
+  while (i != NULL) {
+    p = strtok_r(i, ",", &i);
+    Serial.println(p);
   }
-  cmd = "";
 }
 

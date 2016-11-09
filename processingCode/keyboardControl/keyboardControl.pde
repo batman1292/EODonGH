@@ -1,10 +1,10 @@
 int value = 0;
 int speedA = 0;
 int speedB = 0;
-int speedLevel = 50;
+int speedLevel = 5000;
 long time = millis();
 int state = 0;
-boolean cmdMotor = false;
+int numMotor = 0;
 
 import processing.serial.*;
 
@@ -22,21 +22,28 @@ void draw() {
   rect(25, 25, 50, 50);
   if (state == 2) {
     //    println(millis() - time);
-    if (millis() - time > 5) {
+    if (millis() - time > 20) {
       time = millis();
       //      println(speedA);
       //      myPort.write("02,MO,"+speedA+"\n");
-      if (cmdMotor) {
-        myPort.write("01,MO,"+speedA+"\n");
-      } else {
-        myPort.write("02,MO,"+speedB+"\n");
-//        cmdMotor = true;
+      switch(numMotor){
+        case 0: 
+          myPort.write("01,M1,"+speedA+"\r");
+          break;
+        case 1:
+          myPort.write("02,M1,"+speedB+"\r");
+          break;
+        case 2:
+          myPort.write("03,M1,0\r");
+          break;
       }
-      ack = myPort.readStringUntil('\n');
-      if (ack != null) {
-        cmdMotor = !cmdMotor;
+      ack = myPort.readStringUntil('\r');
+      println(ack);
+      if(numMotor == 2){
+        numMotor = 0;
+      }else{
+        numMotor++;
       }
-      ack = "";
       //      delay(5);z
       //      print("02,MO,"+speedB+"\n");
     }
@@ -45,26 +52,26 @@ void draw() {
 
 void keyPressed() {
   if (keyCode == 81) {
-    myPort.write("03,LS,1\n");
+    myPort.write("01,LS,1\r");
   } else if (keyCode == 87) {
-    myPort.write("03,LS,0\n");
+    myPort.write("01,LS,0\r");
   } else if (keyCode == 65) {
     myPort.write("02,LS,1\n");
-    ack = myPort.readStringUntil('\n');
+//    ack = myPort.readStringUntil('\n');
   } else if (keyCode == 83) {
     myPort.write("02,LS,0\n");
-    ack = myPort.readStringUntil('\n');
+//    ack = myPort.readStringUntil('\n');
   } else if (keyCode == 90) {
-    myPort.write("01,DT,\n");
-    delay(5);
-    myPort.write("02,DT,\n");
-    delay(5);
+//    myPort.write("01,DT,\n");
+//    delay(5);
+//    myPort.write("02,DT,\n");
+//    delay(5);
     state = 0;
   } else if (keyCode == 88) {
-    myPort.write("01,CT,\n");
-    delay(5);
-    myPort.write("02,CT,\n");
-    delay(5);
+//    myPort.write("01,CT,\n");
+//    delay(5);
+//    myPort.write("02,CT,\n");
+//    delay(5);
     state = 2;
   } else if (keyCode == 38) {
     speedA = speedLevel;
@@ -82,7 +89,7 @@ void keyPressed() {
   }
 
   ack = "";
-  //  println(keyCode);
+//  //  println(keyCode);
 }
 
 void keyReleased() {
