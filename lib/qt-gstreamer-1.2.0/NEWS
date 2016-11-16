@@ -1,0 +1,100 @@
+qt-gstreamer 1.2.0 (2014-07-08)
+===============================
+
+    * Initial port to the GStreamer 1.0 series (BREAKS API & ABI)
+
+Further additions:
+    * Added QtQuick2 support, which includes:
+      - The qtquick2videosink gstreamer element
+      - The QtGStreamerQuick2 QML plugin
+      - The Qt5GStreamerQuick glue library
+      - The qmlplayer2 example
+
+Packaging changes:
+    * Tarballs are now distributed in .tar.xz format, together
+      with a .tar.xz.sha256sum check file, like the rest of the
+      GStreamer modules.
+    * Package is NOT fully co-installable with QtGStreamer 0.10.3
+
+Versioning changes:
+    * Version numbers are now going to be synced to the GStreamer API
+      that qt-gstreamer targets, to avoid confusion. So, this release,
+      instead of being version 1.0.0, it is 1.2.0.
+
+qt-gstreamer 0.10.3 (2013-10-14)
+==================================
+
+Additions:
+    * Added Qt5 support.
+    * Added GstDiscoverer bindings.
+    * QGlib::Error can now be used in QGlib::Value
+    * Added convenience constructors for QGst::ClockTime
+
+Fixes:
+    * Fixed qtglvideosink painting on QGLFrameBufferObject
+    * Fixed codegen compilation with bison 2.6
+    * Fixed example code in the QGst::Ui::GraphicsVideoSurface apidocs
+    * Many fixes for windows support
+
+Build system fixes and enhancements:
+    * Use recent cmake goodies:
+      * CMakePackageConfigHelpers, which simplifies QtGStreamerConfig.cmake
+        and adds version checking in find_package(QtGStreamer)
+      * CMAKE_POSITION_INDEPENDENT_CODE, which eliminates issues with
+        missing -fPIC / -fPIE
+      * GNUInstallDirs, which adds automagic support for debian multiarch
+        and also takes away the need for LIB_SUFFIX
+    * .dll's are now installed in the correct place ($prefix/bin) on windows
+    * cmake config files are now installed in $libdir/cmake/$package
+      instead of $libdir/$package
+    * Renamed signal.h to qglib_signal.h to avoid problems where the compiler
+      mixes it up with the C <signal.h>
+    * Determine whether to use OpenGLES or desktop OpenGL by looking at
+      what Qt is using on the target system instead of guessing.
+
+Changes in dependencies:
+    * CMake 2.8.9 is now required
+    * Drop completely automoc dependency in favor of cmake's internal automoc
+    * Qt5 can be used instead of Qt4. The resulting qt-gstreamer files
+        will be co-installable with the ones built using Qt4.
+
+qt-gstreamer 0.10.2 (2012-04-15)
+================================
+
+Additions:
+    * Added qHash(const RefPointer<T> &) function.
+    * Added Element::removePad() and Pad::setActive() methods.
+    * Added extra documentation about the design of the wrapping system.
+    * Added new examples: VoIP and QMLPlayer.
+    * Added new elements: qtvideosink and qtglvideosink.
+    * Added helper classes for painting video on QGraphicsView.
+    * Added QML plugin that provides an item for painting video.
+
+Fixes:
+    * Fixed compilation with newer glib versions.
+    * Fixed compilation with boost 1.48 (QTBUG-22829).
+    * Fixed compilation with -DQT_NO_STL.
+    * Fixed Element::unlink() to work correctly.
+    * Fixed Structure::fromString() to actually compile.
+
+Build system fixes and enhancements:
+    * Utils/global.h is now properly installed.
+    * Support lib64.
+    * Support installing gstreamer plugins in the plugin directory indicated by pkg-config.
+    * Support cmake's internal automoc.
+    * Fixed error output when automoc4 is required and not found.
+    * Fixed cross-compilation issues.
+    * Made all examples compilable standalone with both qmake and cmake.
+    * Fixed FindGObject.cmake not to use pkg-config variables directly.
+    * Fixed UseDoxygen.cmake to not output latex docs by default.
+
+Changes in dependencies:
+    * GStreamer 0.10.33 is now required.
+    * Qt 4.7 is now required.
+    * Flex and bison are no longer required.
+    * Automoc is no longer a mandatory dependency, if cmake >= 2.8.6 is present.
+
+qt-gstreamer 0.10.1 (2011-01-23)
+================================
+
+Initial release.

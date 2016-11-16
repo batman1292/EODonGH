@@ -13,6 +13,7 @@
 //INDEX(En) <-->  7
 //LED       <-->  8
 //Analog    <-->  A0
+
 String versionNum = "01";
 #define LED 8
 //#define DEBUG
@@ -23,9 +24,9 @@ const byte EN = 4;
 //smile EVO24V50 variable
 #define INA 6
 #define INB 5
-#define PWM 9
+const uint8_t PWM = 9;
 
-byte ID = 3; // change for arduino
+byte ID = 1; // change for arduino
 byte buf[ BUF_SIZE ];
 String cmd = "";
 
@@ -38,6 +39,45 @@ long countTime = millis();
 long cmdTime = millis();
 
 int isConnect = 0;
+
+//setting for fequency 20kHz
+#define F_CPU 16000000UL
+
+#define PWM_PERIOD  (1600)  // x 50 usec
+/* freq = 20kHz, period = 50 usec
+ * 50 usec / 800 = 0.0625 ns -> 16MHz tick frequency
+ */
+ 
+volatile uint16_t ovf_count = 0;
+
+ISR(TIMER1_OVF_vect) { // overflow 
+   ovf_count++;
+}
+
+void timer1_init() {
+   uint8_t SREG_tmp = SREG;  // save the status register
+   cli();                    // disable interrupts
+
+   TCCR1B = (0 << ICNC1) | (0 << ICES1) 
+          | (0 << WGM13) | (0 << WGM12) 
+          | (0 << CS12)  | (0 << CS11) | (0 << CS10);
+
+   TCCR1A = (1 << COM1A1) | (0 << COM1A0)
+          | (0 << COM1B1) | (0 << COM1B0)
+          | (1 << WGM11)  | (0 << WGM10); 
+
+   TCNT1 = 0; 
+   ICR1  = PWM_PERIOD-1;
+   OCR1A = 0;
+   OCR1B = 0;
+
+   TIMSK1 = (0 << ICIE1) | (0 << OCIE1B) | (0 << OCIE1A) | (1 << TOIE1); 
+   TCCR1B = (0 << ICNC1) | (0 << ICES1) 
+          | (1 << WGM13) | (1 << WGM12)
+          | (0 << CS12)  | (0 << CS11) | (1 << CS10);
+   ovf_count = 0;            // reset overflow counter
+   SREG = SREG_tmp;          // restore the status register
+}
 
 void setup() {
   // put your setup code here, to run once:
@@ -52,9 +92,9 @@ void setup() {
   pinMode(INA, OUTPUT);
   pinMode(INB, OUTPUT);
   pinMode(PWM, OUTPUT);
-  //  setPwmFrequency(PWM,
-  // serial debug
-  Serial.begin(115200);
+  timer1_init();
+  sei();
+//  Serial.begin(115200);
   delay(1000);
 }
 
@@ -112,7 +152,8 @@ void loop() {
         }
       }
     }
-    analogWrite(PWM, map(moSpeedNow, 0, 6400, 0, 255));
+//    pwmWrite(PWM, map(moSpeedNow, 0, 6400, 0, 255));
+    OCR1A = int(map(moSpeedNow, 0, 6400, 0, PWM_PERIOD));
   }
   if (millis() - cmdTime > 1000) {
     moSpeedNew = 0;
@@ -127,6 +168,7 @@ void check_data(byte len) {
   Serial.print("\n");
   #endif
   if (buf[1] - '0' == ID) {
+    digitalWrite(LED, HIGH);
     cmd += char(buf[3]);
     cmd += char(buf[4]);
     if (cmd == "LS") {
@@ -199,6 +241,7 @@ void check_data(byte len) {
       digitalWrite(EN, LOW);
     }
     cmd = "";
+    digitalWrite(LED, LOW);
   }else{
 //    buf = "";
   }

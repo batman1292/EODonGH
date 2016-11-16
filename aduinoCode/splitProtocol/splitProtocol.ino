@@ -6,7 +6,7 @@ const byte EN = 4;
 byte ID = 2;          //change for other pro micro
 byte buf[ BUF_SIZE ];
 String cmd = "";
-char *temp, *cmd, *value;
+//char *temp, *cmd, *value;
 
 void setup() {
   // put your setup code here, to run once:
@@ -21,17 +21,19 @@ void setup() {
 void loop() {
   // put your main code here, to run repeatedly:
   byte len;
-  len = Serial1.readBytes( (char *)buf, BUF_SIZE );
+  len = Serial1.readBytesUntil('\r', (char *)buf, BUF_SIZE );
   if ( len > 0 ) {
     check_data(len);
   }
 }
 
 void check_data(byte len) {
-  i = (char *)buf;
-  while (i != NULL) {
-    p = strtok_r(i, ",", &i);
-    Serial.println(p);
-  }
+  Serial.write(buf, len);
+  Serial.println();
+//  i = (char *)buf;
+//  while (i != NULL) {
+//    p = strtok_r(i, ",", &i);
+//    Serial.println(p);
+//  }
 }
 

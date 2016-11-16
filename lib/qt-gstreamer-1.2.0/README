@@ -1,0 +1,201 @@
+1. About
+--------
+
+QtGStreamer is a set of libraries and plugins providing C++ bindings for
+GStreamer [1] with a Qt-style API plus some helper classes for integrating
+GStreamer better in Qt [2] applications.
+
+Currently, it consists of the following parts:
+ * QtGLib           - Library providing C++/Qt bindings for parts of the GLib
+                      and GObject APIs, a base on which QtGStreamer is built.
+ * QtGStreamer      - Library providing C++/Qt bindings for GStreamer
+ * QtGStreamerUi    - Library providing integration with QtWidgets. Currently,
+                      it only provides a video widget that embeds GStreamer's
+                      video sinks.
+ * QtGStreamerUtils - Library providing some high level utility classes.
+ * QtGStreamerQuick - Library providing integration with QtQuick (Qt5 only).
+
+In addition, it provides GStreamer elements for painting video on Qt surfaces:
+ * qwidgetvideosink  - For painting on QWidgets
+ * qtvideosink       - For painting on any surface with QPainter
+ * qtglvideosink     - For painting on any surface with QPainter and OpenGL
+ * qtquick2videosink - For painting on QtQuick2 surfaces (Qt5 only)
+
+[1]. http://gstreamer.freedesktop.org/
+[2]. http://qt-project.org/
+
+2. Building
+-----------
+
+2.1 Dependencies
+----------------
+
+QtGStreamer requires the following software to be installed in order to build:
+ * CMake 2.8.9 or later <http://www.cmake.org/>
+ * GStreamer 1.0.0 or later <http://gstreamer.freedesktop.org/>
+   With its dependencies:
+   - Glib / GObject <http://www.gtk.org/>
+   and including gstreamer-plugins-base (1.0.0 or later)
+ * Qt4 or Qt5 (4.7 or later / 5.0 or later) <http://qt-project.org/>
+ * Boost 1.39 or later <http://www.boost.org/>
+ * Flex (only if QTGSTREAMER_CODEGEN=ON, see below) <http://flex.sourceforge.net/>
+ * Bison (only if QTGSTREAMER_CODEGEN=ON, see below) <http://www.gnu.org/software/bison/>
+
+In addition, if gcc is used as the compiler, libstdc++ version 4.5 or later is
+required at runtime. This is due to a bug in earlier versions of libstdc++ that
+sometimes makes dynamic_cast fail under conditions where it should not.
+
+2.2 Compiler
+------------
+
+Note: This paragraph is outdated. It was written at a time where C++11 support
+was not very widespread among compilers. Nowadays, any C++11 capable compiler
+should work fine.
+
+A decent compiler with proper support for advanced templates, including features
+such as partial template specialization, is required. QtGStreamer can also make
+use of C++0x features (see below for details). A compiler supporting at least
+some of them is recommended. Currently, only the GNU C++ compiler (g++) version
+4.5 or later is known to support all the features that QtGStreamer uses. However,
+other compilers can be used too, but with some limitations.
+
+C++0x features in use:
+ * static_assert(). Used to show nice error messages when the programmer is trying
+   to use some template in the wrong way. If not present, the templates will still
+   fail to compile if used in the wrong way, but the error messages may be quite
+   weird to understand...
+ * Variadic templates together with rvalue references. Used to support connecting
+   and emitting GObject signals with any number of arguments. If not available, a
+   hack-ish implementation using boost's preprocessor library, boost::function and
+   boost::bind is used to provide support for up to 9 arguments.
+
+2.3 Procedure
+-------------
+
+The build procedure is simple:
+
+$ mkdir build && cd build
+$ cmake .. -DCMAKE_INSTALL_PREFIX=/path/to/installation/prefix
+$ make
+$ make install
+
+Other options that can be passed to cmake include:
+
+* -DCMAKE_BUILD_TYPE=[Debug|Release|RelWithDebInfo|MinSizeRel]
+  Allows you to specify the type of the build. This is a standard
+  cmake option, see the cmake man page for details.
+
+* -DQT_VERSION=[4|5]
+  Allows you to specify the Qt version that you want to build against.
+  The default is 4.
+
+* -DQTGSTREAMER_STATIC=[ON|OFF]
+  Allows you to choose whether to build static or dynamic libraries.
+  ON means static, OFF means dynamic.
+
+* -DQTGSTREAMER_EXAMPLES=[ON|OFF]
+  Allows you to choose whether to build the examples shipped with QtGStreamer or not.
+  Note that the examples can also be built independently outside the source tree.
+
+* -DQTGSTREAMER_TESTS=[ON|OFF]
+  Allows you to choose whether to build tests or not.
+
+* -DQTGSTREAMER_CODEGEN=[ON|OFF]
+  Allows you to choose whether to build and use the QtGStreamer code generator or not.
+  This code generator generates some extra code based on the QtGlib/QtGStreamer
+  headers. This extra code is required, but it is also shipped in the source tree,
+  so it is not necessary to regenerate it, unless you are developing QtGStreamer and
+  you are making changes to the headers. If you are crosscompiling, you should make
+  sure to turn this feature off, since this will compile codegen for the target
+  architecture and then try to run it, which will fail.
+
+* -DUSE_GST_PLUGIN_DIR=[ON|OFF]
+  Allows you to choose whether to install plugin together with the rest of the
+  gstreamer plugins or whether to install them in the same prefix as QtGStreamer.
+  You will probably want to set this to OFF if you are installing in a prefix
+  different than GStreamer (say somewhere in $HOME) while GStreamer is installed
+  in a system location and you don't want to gain root privileges to do "make install".
+
+* -DUSE_QT_PLUGIN_DIR=[ON|OFF]
+  Same as USE_GST_PLUGIN_DIR, but for Qt (QML) plugins.
+
+* -DGST_PACKAGE_NAME="some string"
+  Allows you to specify the name that gst-inspect will show as the "Binary package"
+  name for all the element plugins that are build from this source package.
+
+* -DGST_PACKAGE_ORIGIN="http://some.url"
+  Allows you to specify the url that gst-inspect will show as the "Origin URL"
+  for all the element plugins that are build from this source package.
+
+2.4 Parallel installation
+-------------------------
+
+QtGStreamer can be built both with Qt4 and Qt5. Installing both versions in
+parallel is possible, since all the libraries, directories and plugins are
+named differently.
+
+Parallel installation is also possible, to a certain extent, between the
+GStreamer-0.10 based version and the GStreamer-1.0 based version. The libraries
+and the GStreamer plugins are co-installable, however the QML plugins as well
+as the headers are NOT.
+
+2.5 Generating documentation
+----------------------------
+
+QtGStreamer uses doxygen for documentation. To generate the documentation you need
+to install doxygen and run "make doc" after you have run cmake. This will generate
+the documentation in <builddir>/doc/html/.
+
+2.6 Running tests
+-----------------
+
+QtGStreamer comes with a suite of automatic unit tests that ensure QtGStreamer
+is working properly. To run them you will need ctest, a tool that comes with cmake,
+plus some gstreamer plugins from the base and good sets.
+
+To run them, simply invoke "make test" or "ctest" in the build directory.
+For advanced usage, refer to the ctest manual page.
+
+2.7 Checking build system integrity
+-----------------------------------
+
+In order to check if the installed build system files (QtGStreamerConfig.cmake,
+pkg-config files, etc) are correct and usable externally, you can run:
+
+$ make examples_distcheck
+
+This checks compilation of the examples with both cmake and qmake.
+
+Note that you should also set your environment accordingly for cmake and qmake
+to be able to find QtGStreamer. For example, on my debian system where I have
+installed the Qt5 version of QtGStreamer in /home/gkiagia/install, I would
+have to do:
+
+$ export QT_SELECT=5            # for debian's qmake wrapper to work with Qt5
+$ export PKG_CONFIG_PATH=/home/gkiagia/install/lib/x86_64-linux-gnu/pkgconfig/
+$ export CMAKE_PREFIX_PATH=/home/gkiagia/install/
+$ make examples_distcheck
+
+3. Links & Contact information
+------------------------------
+
+Web:
+    http://gstreamer.freedesktop.net
+    http://gstreamer.freedesktop.org/wiki/QtGStreamer
+
+Mailing list:
+    mailto:gstreamer-devel@lists.freedesktop.org
+
+Irc channels:
+    irc://irc.freenode.net/gstreamer
+    irc://irc.freenode.net/qtgstreamer
+
+Git repository:
+    http://cgit.freedesktop.org/gstreamer/qt-gstreamer/
+
+Bugs, feature requests & patches should be sent at:
+    https://bugzilla.gnome.org/enter_bug.cgi?product=GStreamer&component=qt-gstreamer
+
+--
+George Kiagiadakis <george.kiagiadakis@collabora.com>
+Last updated: Jun 24, 2014
