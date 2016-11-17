@@ -1,4 +1,10 @@
 import processing.serial.*;
+import controlP5.*;
+
+ControlP5 cp5;
+Knob myKnobA;
+Knob myKnobB;
+Knob myKnobC;
 
 int [] an = new int [3];
 long time = millis();
@@ -17,40 +23,54 @@ int [] lastheight = {
 };
 
 void setup() {
-  myPort = new Serial(this, Serial.list()[4], 115200);
+  myPort = new Serial(this, Serial.list()[4], 38400);
   myPort.clear();
   size(600, 400);
+  background(0);
+  textSize(26); 
+  text("RS485 Analog Reader", 175, 75); 
+  cp5 = new ControlP5(this);
+
+  myKnobA = cp5.addKnob("AnalogID1")
+               .setRange(0, 1023)
+               .setValue(0)
+               .setPosition(50, 125)
+               .setRadius(75);
+//               .setDragDirection(Knob.VERTICAL);
+               
+  myKnobB = cp5.addKnob("AnalogID2")
+               .setRange(0, 1023)
+               .setValue(0)
+               .setPosition(225, 125)
+               .setRadius(75);
+//               .setDragDirection(Knob.VERTICAL);
+               
+  myKnobC = cp5.addKnob("AnalogID3")
+               .setRange(0, 1023)
+               .setValue(0)
+               .setPosition(400, 125)
+               .setRadius(75);
+//               .setDragDirection(Knob.VERTICAL);
+               
 }
 
 void draw() {
   if (state==1) {
     if (millis() - time > 20) {
       time = millis();
-      myPort.write("0"+id+",AN\n");
+      myPort.write("0"+id+",AN\r");
       String inString = myPort.readStringUntil('\n');
       if (inString != null) {
-        float inByte = Float.parseFloat(split(inString, ',')[2]);
-        inByte = map(inByte, 0, 1023, 0, height); //map to the screen height.
-
-        //Drawing a line from Last inByte to the new one.
-
-        stroke(85*id, 85*id, 85*id);     //stroke color
-        strokeWeight(2);        //stroke wider
-        line(lastxPos, lastheight[id-1], xPos, height - inByte); 
-        lastxPos= xPos;
-        lastheight[id-1] = int(height-inByte);
-        if (id == 1) {
-          // at the edge of the window, go back to the beginning:
-          if (xPos >= width) {
-            xPos = 0;
-            lastxPos= 0;
-            background(0);  //Clear the screen.
-          } else {
-            // increment the horizontal position:
-            xPos++;
-          }
+        float value = Float.parseFloat(split(inString, ',')[2]);
+        println(value);
+        if (id == 3) {
+          myKnobC.setValue((value));
           id = 1;
-        }else{
+        } else {
+          if(id == 1)
+            myKnobA.setValue((value));
+          else
+            myKnobB.setValue((value));
           id++;
         }
       }
@@ -61,33 +81,34 @@ void draw() {
 
 void keyPressed() {
   //key press for turn on/off LED
-  if (keyCode == 81) {
-    myPort.write("01,LS,1\n");
+  if (keyCode == 81) {                    //q
+    myPort.write("01,LS,1\r");
     ack = myPort.readStringUntil('\n');
-  } else if (keyCode == 87) {
-    myPort.write("01,LS,0\n");
+  } else if (keyCode == 87) {             //w
+    myPort.write("01,LS,0\r");
     ack = myPort.readStringUntil('\n');
-  } else if (keyCode == 65) {
-    myPort.write("02,LS,1\n");
+  } else if (keyCode == 65) {             //a 
+    myPort.write("02,LS,1\r");
     ack = myPort.readStringUntil('\n');
-  } else if (keyCode == 83) {
-    myPort.write("02,LS,0\n");
+  } else if (keyCode == 83) {             //s
+    myPort.write("02,LS,0\r");
     ack = myPort.readStringUntil('\n');
-  } else if (keyCode == 90) {
-    myPort.write("03,LS,1\n");
+  } else if (keyCode == 90) {             //z
+    myPort.write("03,LS,1\r");
     ack = myPort.readStringUntil('\n');
-  } else if (keyCode == 88) {
-    myPort.write("03,LS,0\n");
+  } else if (keyCode == 88) {             //x
+    myPort.write("03,LS,0\r");
     ack = myPort.readStringUntil('\n');
   } else if (keyCode == 74) {
     state = 1;
   } else if (keyCode == 75) {
     state = 0;
+    id=1;
   }
   //  print(ack);
   ack = "";
   myPort.clear();
-  //  println(keyCode);
+  println(keyCode);
 }
 
 void manageAck(String cmd) {
