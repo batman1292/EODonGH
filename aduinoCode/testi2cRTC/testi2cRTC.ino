@@ -51,11 +51,11 @@ void setup() {
   digitalWrite(EN, LOW);
   Serial1.begin(38400);
   Serial1.setTimeout(10);
-//  init evo24v50 pin
+  //  init evo24v50 pin
   pinMode(INA, OUTPUT);
   pinMode(INB, OUTPUT);
   pinMode(PWM, OUTPUT);
-//  debug serial
+  //  debug serial
   Serial.begin(115200);
   rtc.Begin();
   // never assume the Rtc was last configured by you, so
@@ -68,24 +68,21 @@ void setup() {
 void loop() {
   // put your main code here, to run repeatedly:
   byte len;
-  len = Serial1.readBytes( (char *)buf, BUF_SIZE );
+  len = Serial1.readBytesUntil('\r', (char *)buf, BUF_SIZE );
   if ( len > 0 ) {
     check_data(len);
-    Serial.write(buf, len);
+    //    Serial.write(buf, len);
   }
-//  if(millis()-countTime == 10){
-//    countTime = millis();
-//  }
 }
 
 void check_data(byte len) {
   cmd += char(buf[0]);
   cmd += char(buf[1]);
-  if (cmd.toInt() == ID && buf[len - 1] == '\n') {
+  if (cmd.toInt()) {
     cmd = "";
     cmd += char(buf[3]);
     cmd += char(buf[4]);
-    if(cmd == "CT"){
+    if (cmd == "CT") {
       isConnect = 1;
       digitalWrite(EN, HIGH);
       Serial1.print("0");
@@ -94,7 +91,7 @@ void check_data(byte len) {
       Serial1.flush();
       delayMicroseconds(200);
       digitalWrite(EN, LOW);
-    }else if(cmd == "DT"){
+    } else if (cmd == "DT") {
       isConnect = 0;
       digitalWrite(EN, HIGH);
       Serial1.print("0");
@@ -103,7 +100,7 @@ void check_data(byte len) {
       Serial1.flush();
       delayMicroseconds(200);
       digitalWrite(EN, LOW);
-    }else if(cmd == "LS"){
+    } else if (cmd == "LS") {
       buf[6] - '0' == 0 ? digitalWrite(LED, LOW) : digitalWrite(LED, HIGH);
       digitalWrite(EN, HIGH);
       Serial1.print("0");
@@ -112,7 +109,7 @@ void check_data(byte len) {
       Serial1.flush();
       delayMicroseconds(200);
       digitalWrite(EN, LOW);
-    }else if(cmd == "AN"){
+    } else if (cmd == "AN") {
       analogValue = analogRead(AN);
       digitalWrite(EN, HIGH);
       Serial1.print("0");
@@ -122,14 +119,14 @@ void check_data(byte len) {
       Serial1.flush();
       delayMicroseconds(200);
       digitalWrite(EN, LOW);
-    }else if(cmd == "TM"){
+    } else if (cmd == "TM") {
       RtcDateTime now = rtc.GetDateTime();
       char date [BUF_SIZE];
       sprintf(date, "%02d:%02d:%02d", now.Hour(), now.Minute(), now.Second());
       digitalWrite(EN, HIGH);
       Serial1.print("0");
       Serial1.print(ID);
-      Serial1.print(",TM,");
+      Serial1.print(",OK,");
       Serial1.println(date);
       Serial1.flush();
       delayMicroseconds(200);
