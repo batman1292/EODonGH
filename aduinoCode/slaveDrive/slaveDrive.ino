@@ -108,7 +108,6 @@ void loop() {
   //  if (isConnect) {
   if (millis() - countTime > 10) {
     countTime = millis();
-    //    Serial.println("drive");
     if (moSpeedNew == 0) {
       if (moSpeedNow > 0) {
         moSpeedNow -= moSpeedStep;

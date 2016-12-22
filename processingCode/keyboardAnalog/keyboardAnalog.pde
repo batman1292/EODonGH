@@ -6,21 +6,12 @@ Knob myKnobA;
 Knob myKnobB;
 Knob myKnobC;
 
-int [] an = new int [3];
 long time = millis();
 
 Serial myPort;
-String ack = "";
-int [] ackArdu485 = {
-  0, 0, 0
-};
 int state = 0;
 int id = 1;
-int xPos = 1;
-int lastxPos=1;
-int [] lastheight = {
-  0, 0, 0
-};
+
 
 void setup() {
   myPort = new Serial(this, Serial.list()[4], 38400);
@@ -29,6 +20,7 @@ void setup() {
   background(0);
   textSize(26); 
   text("RS485 Analog Reader", 175, 75); 
+  
   cp5 = new ControlP5(this);
 
   myKnobA = cp5.addKnob("AnalogID1")
@@ -62,7 +54,6 @@ void draw() {
       String inString = myPort.readStringUntil('\n');
       if (inString != null) {
         float value = Float.parseFloat(split(inString, ',')[2]);
-        println(value);
         if (id == 3) {
           myKnobC.setValue((value));
           id = 1;
@@ -109,17 +100,5 @@ void keyPressed() {
   ack = "";
   myPort.clear();
   println(keyCode);
-}
-
-void manageAck(String cmd) {
-  if (cmd == "CT") {
-    if (ack != null) {
-      String[] ackList = split(ack, ',');
-      ackArdu485[Integer.parseInt(ackList[0])]++;
-      print(split(ack, ','));
-      //      ack = "";
-    }
-  }
-  ack = "";
 }
 

@@ -90,7 +90,7 @@ void check_data(byte len) {
       digitalWrite(EN, HIGH);
       Serial1.print("0");
       Serial1.print(ID);
-      Serial1.print(",AN,");
+      Serial1.print(",OK,");
       Serial1.println(analogValue);
       Serial1.flush();
       delayMicroseconds(200);
