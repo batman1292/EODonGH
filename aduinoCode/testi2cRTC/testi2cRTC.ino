@@ -57,6 +57,7 @@ void setup() {
   pinMode(PWM, OUTPUT);
   //  debug serial
   Serial.begin(115200);
+  
   rtc.Begin();
   // never assume the Rtc was last configured by you, so
   // just clear them to your needed state

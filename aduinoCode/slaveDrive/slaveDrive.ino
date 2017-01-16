@@ -26,7 +26,7 @@ const byte EN = 4;
 #define INB 5
 const uint8_t PWM = 9;
 
-byte ID = 1; // change for arduino
+byte ID = 3; // change for arduino
 byte buf[ BUF_SIZE ];
 String cmd = "";
 
