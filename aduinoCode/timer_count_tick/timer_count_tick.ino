@@ -1,6 +1,10 @@
-#define ledPin 9
-#define enPinA  2                               // encoder A pin
-#define enPinB  3                               // encoder B pin
+//smile EVO24V50 variable
+#define INA 6
+#define INB 5
+const uint8_t PWM = 9;
+
+#define enPinA  3                               // encoder A pin
+#define enPinB  2                               // encoder B pin
 int encoder0PinALast = LOW;
 int speed_act = 0;                              // actual speed (current speed)
 uint8_t enable = 0;
@@ -11,7 +15,7 @@ int n = LOW;
 
 void setup()
 {
-  pinMode(ledPin, OUTPUT);
+//  pinMode(ledPin, OUTPUT);
   //init encoder pin
   pinMode(enPinA, INPUT); 
 //  digitalWrite(enPinA, HIGH);       // turn on pull-up resistor
@@ -53,8 +57,11 @@ ISR(TIMER3_COMPA_vect)          // timer compare interrupt service routine
 // Serial.print (millis()-lastMilli);
 //      Serial.println ("/");
   enable = 1;
-  Serial.print (encoder0Pos);
-  Serial.println ("/");
+  static long countAnt = 0; 
+  Serial.println((countAnt - encoder0Pos)*6/5);
+  countAnt = encoder0Pos;
+//  Serial.print (encoder0Pos);
+//  Serial.println ("/");
 //  digitalWrite(ledPin, HIGH);
 //  digitalWrite(ledPin, digitalRead(ledPin) ^ 1);   // toggle LED pin
 }

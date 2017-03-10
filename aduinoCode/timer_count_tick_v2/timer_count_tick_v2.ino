@@ -58,13 +58,14 @@ void setup()
 ISR(TIMER3_COMPA_vect) {
   static long countAnt = 0;                     // last count
 //      speed_act = ((countAnt - count) * (60)) / 5; // (encoder pulses X 100 (100 samplimg per sec) X 60 (1 min))/(360 (ppr))
-  Serial.println((countAnt - count)/0.005);
+  Serial.println((countAnt - count)*10*60/500.0);
   countAnt = count;
   attachInterrupt(0, rencoder, RISING);
   enable = 1;
   countLoop = 0;
 }
 
+// count to 10 ms and disable rencodeer interrupt
 ISR(TIMER0_COMPA_vect) { 
 //  digitalWrite(ledPin, digitalRead(ledPin)^1);
   if(enable == 1){

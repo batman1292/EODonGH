@@ -1,5 +1,5 @@
-#define InA1            10                      // INA motor pin Direction motor
-#define InB1            11                      // INB motor pin Direction motor
+#define InA1            6                      // INA motor pin Direction motor
+#define InB1            5                      // INB motor pin Direction motor
 #define PWM1            9                       // PWM motor pin
 #define LOOPTIME        10                      // Loop time
 #define encodPinA1      2                       // encoder A pin
@@ -8,13 +8,13 @@
 unsigned long loop_time;
 unsigned long lastMilli = 0;
 volatile long count = 0;
-int speed_req = 500;                             // set point speed
+int speed_req = 1500;                             // set point speed
 int PWM_val = 0;                                // value of PWM signal to Motor drive
 int speed_act = 0;                              // actual speed (current speed)
 int i = 0;
 int integral = 0;
 //////////////////////////////////////////////////////////////////////////////////////
-float Kp =   10;                                 // PID integral control Gain
+float Kp =   1;                                 // PID integral control Gain
 float Kd =    0;                                // PID Derivitave control gain
 float Ki =    0;                                // PID Derivitave control gain
 //////////////////////////////////////////////////////////////////////////////////
@@ -36,6 +36,8 @@ void loop() {
     lastMilli = millis();            // enter timed loop
     getMotorData();                  // go to getMotorData function
     PWM_val = updatePid(PWM_val, speed_req, speed_act);  // compute PWM value from PID controller
+    Serial.print(speed_act); Serial.print("\t");
+    Serial.println(PWM_val); 
     analogWrite(PWM1, PWM_val);      // send PWM to motor drive
   }
 }
@@ -44,8 +46,8 @@ void loop() {
 void getMotorData()                  // calculate speed,
 {
   static long countAnt = 0;    // last count
-  speed_act = ((countAnt - count) * (60)) / 4; // (encoder pulses X 50 (50 samplimg per sec) X 60 (1 min))/(360 (ppr))
-  Serial.println(speed_act);
+  speed_act = ((countAnt - count)* 50 * (60)) / 500; // (encoder pulses X 50 (50 samplimg per sec) X 60 (1 min))/(360 (ppr))
+//  Serial.println(speed_act);
   countAnt = count;
 }
 void rencoder()                                      // pulse and direction, direct port reading to save cycles
