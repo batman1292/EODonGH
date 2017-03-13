@@ -1,10 +1,10 @@
 int value = 0;
 int speedA = 0;
 int speedB = 0;
-int speedLevel = 5000;
+int speedLevel = 4000;
 long time = millis();
 int state = 0;
-int numMotor = 0;
+int numMotor = 1;
 
 import processing.serial.*;
 
@@ -13,7 +13,7 @@ String ack = "";
 
 void setup() {
   println(Serial.list());
-  myPort = new Serial(this, Serial.list()[4], 38400);
+  myPort = new Serial(this, Serial.list()[5], 38400);
 }
 
 void draw() {
@@ -47,19 +47,15 @@ void keyPressed() {
     myPort.write("01,LS,1\r");
   } else if (keyCode == 87) {
     myPort.write("01,LS,0\r");
-  } else if (keyCode == 65) {
-//    myPort.write("02,LS,1\n");zx
-//    ack = myPort.readStringUntil('\n');
-  } else if (keyCode == 83) {
-//    myPort.write("02,LS,0\n");
-//    ack = myPort.readStringUntil('\n');
   } else if (keyCode == 90) {
+//    press z key
 //    myPort.write("01,DT,\n");
 //    delay(5);
 //    myPort.write("02,DT,\n");
 //    delay(5);
     state = 0;
   } else if (keyCode == 88) {
+//    press x key
 //    myPort.write("01,CT,\n");
 //    delay(5);
 //    myPort.write("02,CT,\n");
@@ -78,6 +74,21 @@ void keyPressed() {
   } else if (keyCode == 39) {
     speedA = speedLevel;
     speedB = -speedLevel;
+  } else if (keyCode == 65) {
+    speedA = 6400;
+    speedB = 1500;
+  } else if (keyCode == 83) {
+//    press s key
+    speedA = 3000;
+    speedB = 3000;
+  }else if(keyCode == 68){
+//    press d key
+    speedA = 4500;
+    speedB = 4500;
+  }else if(keyCode == 68){
+//    press d key
+    speedA = 4500;
+    speedB = 4500;
   }
   println(keyCode);
   ack = "";

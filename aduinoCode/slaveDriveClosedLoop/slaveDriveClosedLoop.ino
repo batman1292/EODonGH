@@ -258,12 +258,12 @@ void check_data(byte len) {
         value += char(buf[i]);
       }
       moSpeedNew = value.toInt();
-      if (moSpeedNew > 5000) {
-        moSpeedNew = 5000;
-      }
-      if (moSpeedNew < -5000) {
-        moSpeedNew = -5000;
-      }
+//      if (moSpeedNew > 5000) {
+//        moSpeedNew = 5000;
+//      }
+//      if (moSpeedNew < -5000) {
+//        moSpeedNew = -5000;
+//      }
       changeDir(moSpeedNew);
       digitalWrite(EN, HIGH);
       Serial1.print("0");
@@ -299,6 +299,17 @@ void check_data(byte len) {
       Serial1.print(",OK\r");
       Serial1.flush();
       delayMicroseconds(200);
+      digitalWrite(EN, LOW);
+    } else if (cmd == "FU"){
+      moSpeedNew = 6400;
+      changeDir(moSpeedNew);
+      digitalWrite(EN, HIGH);
+      Serial1.print("0");
+      Serial1.print(ID);
+      Serial1.print(",OK\r");
+      //      Serial1.println(moSpeedNow);
+      Serial1.flush();
+      delayMicroseconds(20);
       digitalWrite(EN, LOW);
     }
     cmd = "";
