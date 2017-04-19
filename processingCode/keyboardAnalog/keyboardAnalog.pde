@@ -7,7 +7,7 @@ Knob myKnobB;
 Knob myKnobC;
 
 long time = millis();
-
+String ack = "";
 Serial myPort;
 int state = 0;
 int id = 1;

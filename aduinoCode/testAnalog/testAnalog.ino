@@ -23,7 +23,7 @@
 //analog variable
 const int AN = A0;
 
-byte ID = 2;          //change for other pro micro
+byte ID = 3;          //change for other pro micro
 byte buf[ BUF_SIZE ];
 String cmd = "";
 //long countTime = millis();
@@ -88,7 +88,7 @@ void check_data(byte len) {
     } else if (cmd == "AN") {
       analogValue = analogRead(AN);
       digitalWrite(EN, HIGH);
-      Serial1.print("0");
+      Serial1.print('0');
       Serial1.print(ID);
       Serial1.print(",OK,");
       Serial1.println(analogValue);

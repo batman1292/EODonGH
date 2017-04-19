@@ -10,7 +10,6 @@ void setup() {
   Serial1.begin(38400);
   Serial1.setTimeout(10);
 
-  Serial.begin(115200);
   Serial.setTimeout( 10 );
 }
 

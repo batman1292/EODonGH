@@ -2,11 +2,16 @@
 // Use Timer3 in timer compare interrupt mode and external interrupt for count pulse from encoder.
 
 // init on board led pin
-#define LED 15 
+#define LED 8
 String versionNum = "02";
+
+byte ID           = 2;                                // arduino ID
+String cmd        = "";
+
 //rs 485 variable
 const byte EN = 4;
 #define BUF_SIZE 32
+byte buf[ BUF_SIZE ];
 
 // init encoder Pin
 #define enPinA  2
@@ -28,10 +33,6 @@ int integral      = 0;
 float Kp          = 2;                                // PID integral control Gain
 float Kd          = 0;                                // PID Derivitave control gain
 float Ki          = 0;                              // PID Derivitave control gain
-
-byte ID           = 1;                                // arduino ID
-byte buf[ BUF_SIZE ];
-String cmd        = "";
 
 int moSpeedNew = 0;
 int moSpeedNow = 0;
@@ -87,7 +88,7 @@ void timer3_init() {
   TCCR3B = 0;
   TCNT3  = 0;
 
-  OCR3A = 1250;              // compare match register 16MHz/256*(10ms)
+  OCR3A = 625;              // compare match register 16MHz/256*(10ms)
   TCCR3B |= (1 << WGM12);   // CTC mode
   TCCR3B |= (1 << CS12);    // 256 prescaler
   TIMSK3 |= (1 << OCIE3A);  // enable timer compare interrupt
@@ -95,18 +96,21 @@ void timer3_init() {
 
 // active every 10 ms to active rencoder interrupt
 ISR(TIMER3_COMPA_vect) {
-  digitalWrite(LED, !digitalRead(LED));
   if (enable == 0) {
     detachInterrupt(0);
     enable = 1;
     static long countAnt = 0;                     // last count
     speedEn = ((countAnt - countEncoder) * 100 * (60)) / 500; // (encoder pulses X 100 (100 samplimg per sec) X 60 (1 min))/(360 (ppr))
-//    Serial.print(speedEn); Serial.print("\t");
+    //    Serial.println(speedEn);
+    //    Serial.print("\t");
+    // moSpeedNew set-point from cmd
+    //    PWM_val = updatePid(PWM_val, moSpeedNew, speedEn);
+    // moSpeedNow set-point from inscreae speed
     PWM_val = updatePid(PWM_val, moSpeedNow, speedEn);
     OCR1A = int(map(PWM_val, 0, 6400, 0, PWM_PERIOD));
     countAnt = countEncoder;
-    Serial.println(speedEn); 
-//    Serial.print("\t");Serial.println(PWM_val);
+    Serial.print(moSpeedNew);
+    Serial.print("\t"); Serial.println(speedEn);
   } else {
     attachInterrupt(0, rencoder, RISING);
     enable = 0;
@@ -140,20 +144,20 @@ void setup() {
   // put your setup code here, to run once:
   pinMode(enPinA, INPUT);
   pinMode(enPinB, INPUT);
-  
+
   pinMode(INA, OUTPUT);
   pinMode(INB, OUTPUT);
   pinMode(PWM, OUTPUT);
-  
-//  digitalWrite(INA, HIGH);
-//  digitalWrite(INB, LOW);
+
+  //  digitalWrite(INA, HIGH);
+  //  digitalWrite(INB, LOW);
 
   // init serial1 for rs 485
   pinMode(EN, OUTPUT);
   digitalWrite(EN, LOW);
   Serial1.begin(38400);
   Serial1.setTimeout(10);
-  
+
   Serial.begin(115200);
   noInterrupts();
   timer3_init();
@@ -163,7 +167,7 @@ void setup() {
 
 void loop() {
   // put your main code here, to run repeatedly:
-//  Serial.println("start");
+  //  Serial.println("start");
   byte len;
   len = Serial1.readBytesUntil('\r', (char *)buf, BUF_SIZE );
   if ( len > 0 ) {
@@ -214,73 +218,79 @@ void loop() {
         }
       }
     }
-//    pwmWrite(PWM, map(moSpeedNow, 0, 6400, 0, 255));
-//    OCR1A = int(map(moSpeedNow, 0, 6400, 0, PWM_PERIOD));
+    //    pwmWrite(PWM, map(moSpeedNow, 0, 6400, 0, 255));
+    //    OCR1A = int(map(moSpeedNow, 0, 6400, 0, PWM_PERIOD));
   }
   if (millis() - cmdTime > 1000) {
+//    Serial.println("timeout");
     moSpeedNew = 0;
   }
 }
 
 void check_data(byte len) {
-  #ifdef DEBUG
+#ifdef DEBUG
   Serial.print(len);
   Serial.write(buf, len);
   Serial.print("\n");
-  #endif
+#endif
   if (buf[1] - '0' == ID) {
-//    digitalWrite(LED, HIGH);
+    //    digitalWrite(LED, HIGH);
     cmd += char(buf[3]);
     cmd += char(buf[4]);
     if (cmd == "LS") {
       buf[6] - '0' == 0 ? digitalWrite(LED, LOW) : digitalWrite(LED, HIGH);
       digitalWrite(EN, HIGH);
-      Serial1.print("0");
       Serial1.print(ID);
+      Serial1.print("0");
       Serial1.print(",OK\r");
       Serial1.flush();
       delayMicroseconds(200);
       digitalWrite(EN, LOW);
     } else if (cmd == "VR") {
       digitalWrite(EN, HIGH);
-      Serial1.print("0");
       Serial1.print(ID);
+      Serial1.print("0");
       Serial1.print(",OK,");
       Serial1.print(versionNum);
       Serial1.print("\n");
       Serial1.flush();
       delayMicroseconds(200);
       digitalWrite(EN, LOW);
-//    }
+      //    }
     } else if (cmd == "M1") {
       cmdTime = millis();
-      String value = "";
-      for (int i = 6; i < len; i++) {
-        value += char(buf[i]);
+      char temp[6];
+      int i;
+      for (i = 6; i < len; i++) {
+        temp[i - 6] = char(buf[i]);
       }
-      moSpeedNew = value.toInt();
-//      if (moSpeedNew > 5000) {
-//        moSpeedNew = 5000;
-//      }
-//      if (moSpeedNew < -5000) {
-//        moSpeedNew = -5000;
-//      }
+      temp[i - 6] = '\0';
+      if (atoi(temp) != moSpeedNew) {
+        moSpeedNew = atoi(temp);
+        if (moSpeedNew > 5000) {
+          moSpeedNew = 5000;
+        }
+        if (moSpeedNew < -5000) {
+          moSpeedNew = -5000;
+        }
+      }
+      //      Serial.println(moSpeedNew);
       changeDir(moSpeedNew);
       digitalWrite(EN, HIGH);
-      Serial1.print("0");
+      Serial1.print('0');
       Serial1.print(ID);
-      Serial1.print(",");
+      Serial1.print(',');
+//      Serial1.print("0,");
       Serial1.print(speedEn);
-      Serial1.print("\r");
-      //      Serial1.println(moSpeedNow);
+      Serial1.print(",OK\r");
       Serial1.flush();
-      delayMicroseconds(20);
+      delayMicroseconds(200);
       digitalWrite(EN, LOW);
     } else if (cmd == "CT") {
       isConnect = 1;
       digitalWrite(EN, HIGH);
-      Serial1.print("0");
       Serial1.print(ID);
+      Serial1.print("0");
       Serial1.print(",OK\r");
       Serial1.flush();
       delayMicroseconds(200);
@@ -288,35 +298,15 @@ void check_data(byte len) {
     } else if (cmd == "DT") {
       isConnect = 0;
       digitalWrite(EN, HIGH);
-      Serial1.print("0");
       Serial1.print(ID);
+      Serial1.print("0");
       Serial1.print(",OK\r");
       Serial1.flush();
       delayMicroseconds(200);
-      digitalWrite(EN, LOW);
-    } else if (cmd == "BK") {
-      moSpeedNew = 0;
-      digitalWrite(EN, HIGH);
-      Serial1.print("0");
-      Serial1.print(ID);
-      Serial1.print(",OK\r");
-      Serial1.flush();
-      delayMicroseconds(200);
-      digitalWrite(EN, LOW);
-    } else if (cmd == "FU"){
-      moSpeedNew = 6400;
-      changeDir(moSpeedNew);
-      digitalWrite(EN, HIGH);
-      Serial1.print("0");
-      Serial1.print(ID);
-      Serial1.print(",OK\r");
-      //      Serial1.println(moSpeedNow);
-      Serial1.flush();
-      delayMicroseconds(20);
       digitalWrite(EN, LOW);
     }
     cmd = "";
-    digitalWrite(EN, LOW);
+    //    digitalWrite(LED, LOW);
   }
 }
 

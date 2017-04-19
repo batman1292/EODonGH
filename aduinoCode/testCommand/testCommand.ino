@@ -43,7 +43,7 @@ void setup() {
 void loop() {
   // put your main code here, to run repeatedly:
   byte len;
-  len = Serial1.readBytesUntil('\r', (char *)buf, BUF_SIZE );
+  len = Serial1.readBytesUntil('\n', (char *)buf, BUF_SIZE );
   if ( len > 0 ) {
     check_data(len);
   }
@@ -70,7 +70,7 @@ void check_data(byte len) {
       Serial1.print("0");
       Serial1.print(ID);
       Serial1.println(",OK");
-      Serial1.flush();
+//      Serial1.flush();
       delayMicroseconds(200);
       digitalWrite(EN, LOW);
     } else if (cmd == "LB") {

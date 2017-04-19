@@ -4,8 +4,8 @@ int speedB = 0;
 int speedLevel = 4000;
 long time = millis();
 int state = 0;
-int numMotor = 1;
-
+int numMotor = 0;
+String myString = null;
 import processing.serial.*;
 
 Serial myPort;
@@ -13,26 +13,31 @@ String ack = "";
 
 void setup() {
   println(Serial.list());
-  myPort = new Serial(this, Serial.list()[5], 38400);
+  myPort = new Serial(this, "COM11", 38400);
 }
 
 void draw() {
+  myString = myPort.readStringUntil(13);
+  if (myString != null) {
+    println(myString);
+  }
   fill(value);
   rect(25, 25, 50, 50);
   if (state == 1) {
     if (millis() - time > 10) {
       time = millis();
-      switch(numMotor){
-        case 0: 
-          myPort.write("01,M1,"+speedA+"\r");
-          break;
-        case 1:
-          myPort.write("02,M1,"+speedB+"\r");
-          break;
-        case 2:
-          myPort.write("03,M1,0\r");
-          break;
-      }
+      myPort.write("01,M1,"+speedA+"\r");
+//      switch(numMotor){
+//        case 0: 
+//          myPort.write("01,M1,"+speedA+"\r");
+//          break;
+//        case 1:
+//          myPort.write("02,M1,"+speedB+"\r");
+//          break;
+//        case 2:
+//          myPort.write("03,M1,0\r");
+//          break;
+//      }
 //      if(numMotor == 2){
 //        numMotor = 0;
 //      }else{
@@ -44,9 +49,10 @@ void draw() {
 
 void keyPressed() {
   if (keyCode == 81) {
-    myPort.write("01,LS,1\r");
+    myPort.write("02,LS,1\r");
+//    myPort.write("01,VR\r");
   } else if (keyCode == 87) {
-    myPort.write("01,LS,0\r");
+    myPort.write("02,LS,0\r");
   } else if (keyCode == 90) {
 //    press z key
 //    myPort.write("01,DT,\n");
@@ -90,6 +96,7 @@ void keyPressed() {
     speedA = 4500;
     speedB = 4500;
   }
+   myPort.clear();
   println(keyCode);
   ack = "";
 }
